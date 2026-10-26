@@ -151,6 +151,8 @@ Conversa/
 
 Ingreso con nombre único entre usuarios conectados, grupo inicial General, mensajes con UUID, autor y hora, lista de conectados, notificaciones de entrada/salida, edición sincronizada y estado de conexión. La autoría de las ediciones y eliminaciones se valida en el servidor. Los visitantes que aún no ingresan no reciben los eventos del grupo.
 
+La hora de cada mensaje se registra en el servidor como una marca de tiempo UTC (formato ISO 8601), que representa un instante común para todos los usuarios. Al mostrarla, el navegador la convierte automáticamente a la zona horaria local del dispositivo de cada usuario. Por eso, un mismo mensaje puede mostrar horas distintas según la región, aunque corresponde al mismo instante. La conversión no requiere cálculos manuales; la hora registrada depende de que el reloj del servidor esté correctamente sincronizado.
+
 ## Retos implementados
 
 Los cinco seleccionados para la parte obligatoria son **1, 3, 4, 6 y 9**. Se implementaron otros siete: **12 retos en total**. La bonificación está sujeta a demostración y evidencia y tiene un máximo de **+1 punto**.
