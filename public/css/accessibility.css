@@ -1,0 +1,12 @@
+/* Texto secundario legible sobre superficies claras. */
+.brand-subtitle,.workspace-search,.workspace-search kbd,.channel-heading p,.channel-members>span,
+.channel-tag,.group-overview p,.detail-caption,.detail-empty,.detail-count,.workspace-tip p,
+.details-footer,.welcome .eyebrow,.welcome>p:not(.eyebrow),.welcome-note,.message-meta time,
+.edited-label,.notice,.date-separator,.composer-destination,.composer-destination strong,
+.composer-hint,.composer-hint kbd,.typing-indicator,.composer-area>.feedback,
+.detail-pin-card>span,.reply-preview span:not([data-icon]){color:#64748b}
+.connection.online{color:#18754f}.connection.reconnecting{color:#88600d}.connection:not(.online):not(.reconnecting){color:#ad3e3e}
+.group-badge{color:#137567}.detail-pin-card small{color:#4868b7}
+.message-quote span{color:#5f718e}.message-meta strong{color:#425571}
+.composer-tools .icon-button,.reaction-picker summary{color:#718096}
+@media(max-width:700px){button:focus-visible,summary:focus-visible{outline-offset:2px}dialog input,dialog select,dialog textarea{font-size:16px}.message-action-list button,.delete-actions button,.edit-actions button{min-height:44px}}

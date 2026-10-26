@@ -1,0 +1,79 @@
+/* Los privados ocupan el área de conversación, sin bloquear la navegación. */
+.private-typing:empty{display:none}.private-typing{margin:0 3px 7px;min-height:0}
+.private-view .private-messages{row-gap:6px}
+.private-view .private-messages .message>p{padding:9px 14px}
+.private-view .private-messages .compact-message .message-meta{display:none}
+.private-view .private-messages .compact-message{margin-top:0}
+.compact-message-time{font-size:9px;color:#64748b}.message>time.compact-message-time{display:block;margin-top:3px}
+.private-view .private-messages .compact-message .message-actions{top:3px}
+#private-emoji{align-self:flex-end;margin-bottom:2px}#private-emoji-picker{bottom:calc(100% + 8px);left:0}
+.private-view .message-receipt{margin:4px 2px 0;line-height:1.3}
+.message-receipt{display:block;text-align:right;font-size:10px;color:#64748b;margin-top:7px}.message-receipt.read{color:#315bd4}.private-view .private-messages .message-meta{padding-right:27px}.private-view .private-messages .own .message-meta{padding-right:0;padding-left:27px}.private-view .private-messages .message-actions>summary{opacity:1}.private-view .private-messages .message.deleted>p{color:#64748b;background:#f0f3f8;border:1px dashed #cfd8e6}#private-action-content{width:100%;border:1px solid #dce3ee;border-radius:9px;padding:12px;min-height:110px;resize:vertical;font:inherit;font-size:13px;line-height:1.7}
+/* El ancho del chat se conserva entre General y Privados. Detalles es un panel superpuesto. */
+.shell,.shell.details-hidden,.shell.private-chat{grid-template-columns:250px minmax(0,1fr)}
+.shell .details-panel{display:none;position:fixed;top:82px;bottom:0;right:0;width:288px;z-index:35;box-shadow:-12px 0 40px #15243b18}
+.shell:not(.details-hidden) .details-panel,.shell.details-open .details-panel{display:flex}
+@media(min-width:1700px){.shell,.shell.details-hidden,.shell.private-chat{grid-template-columns:270px minmax(0,1fr)}}
+@media(min-width:701px) and (max-width:1200px){.shell,.shell.details-hidden,.shell.private-chat{grid-template-columns:225px minmax(0,1fr)}}
+@media(max-width:700px){.shell,.shell.details-hidden,.shell.private-chat{grid-template-columns:minmax(0,1fr)}.shell .details-panel{top:70px;width:min(310px,90vw)}}
+
+
+.conversation.private-mode>:not(.private-view){visibility:hidden;pointer-events:none}
+.private-view{position:absolute;inset:0;display:grid;grid-template-columns:210px minmax(0,1fr);background:#f7f9fc;z-index:12;overflow:hidden}
+.private-contacts{background:#fff;border-right:1px solid var(--line);min-height:0;display:flex;flex-direction:column}
+.private-contacts>header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:22px 14px 20px;border-bottom:1px solid var(--line);min-height:85px}
+.private-contacts h2{font-size:13px;font-weight:650;margin:0;letter-spacing:-.2px}
+#private-contacts-empty{font-size:12px;line-height:1.8;padding:18px;color:var(--muted)}
+#private-contact-list{padding:8px;margin:0;list-style:none;overflow:auto;flex:1}
+.private-contact{display:flex;align-items:center;gap:9px;width:100%;border:0;border-radius:9px;padding:12px 9px;background:transparent;text-align:left;color:#334155}
+.private-contact:hover{background:#f3f6fb}.private-contact[aria-current="true"]{background:#edf2ff;color:#294ed7}
+.private-contact>.avatar{width:31px;height:31px;font-size:10px}.private-contact-info{min-width:0;flex:1}
+.private-contact strong{display:block;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.private-contact small{display:block;font-size:10px;color:#64748b;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.private-unread{font-size:10px;border-radius:10px;padding:3px 6px;color:#fff;background:var(--blue);flex-shrink:0}
+.private-thread{display:flex;flex-direction:column;min-height:0;min-width:0}
+.private-thread-header{display:flex;align-items:center;gap:11px;background:#fff;border-bottom:1px solid var(--line);padding:20px 24px;min-height:85px;flex-shrink:0}
+.private-thread-header>div{min-width:0;flex:1}.private-thread-header h2{font-size:15px;font-weight:600;overflow-wrap:anywhere;margin:0 0 5px;letter-spacing:-.3px}
+#private-status{font-size:11px;color:#64748b;margin:0;line-height:1.6}.private-thread-label{font-size:10px;color:#64748b;border:1px solid var(--line);padding:5px 8px;border-radius:6px}
+#private-dialog.private-view{width:auto;max-height:none;padding:0}
+.private-view .private-messages{height:auto;flex:1;min-height:0;margin:0;border-radius:0;padding:26px 24px;gap:20px;overflow:auto;background:#f7f9fc}
+.private-view .private-messages .message{max-width:80%;margin:0;flex-shrink:0}.private-view .private-messages .message>p{font-size:13px;color:#1e293b}.private-view .private-messages .own>p{color:#fff;background:var(--blue)}
+.private-view .private-empty{font-size:13px;color:#64748b;line-height:1.8;text-align:center;margin:auto;max-width:280px;padding:20px}
+.private-view #private-form{padding:14px 22px 12px;flex-shrink:0}
+.private-view #private-form .composer{gap:12px;padding:12px;align-items:flex-end}
+.private-view #private-content{flex:1;min-width:0;min-height:42px;max-height:120px;resize:none;font-size:13px;line-height:1.7}
+.private-view #private-send{width:auto;height:auto;min-height:38px;display:flex;align-items:center;gap:8px;padding:10px 13px;font-size:11px}
+.private-footnote{font-size:10px;color:#64748b;text-align:center;margin:9px 0 0}
+#private-back{display:none}#private-back .icon{transform:rotate(180deg)}
+@media(max-width:1200px){.private-view{grid-template-columns:180px minmax(0,1fr)}.private-thread-header{padding:18px}.private-view #private-form{padding-left:16px;padding-right:16px}}
+@media(max-width:700px){.private-view{grid-template-columns:minmax(0,1fr)}.private-view:not(.has-contact) .private-thread{display:none}.private-view.has-contact .private-contacts{display:none}.private-contacts>header{padding:18px;min-height:75px}.private-contacts h2{font-size:17px}.private-contact{padding:15px 12px;min-height:67px}.private-contact>.avatar{width:38px;height:38px;font-size:12px}.private-contact strong{font-size:14px}.private-contact small{font-size:12px}.private-thread-header{padding:14px 12px;min-height:78px}.private-thread-header h2{font-size:15px}.private-thread-label{display:none}#private-back{display:inline-flex}.private-view #private-form{padding:10px 12px 14px}.private-view #private-content{font-size:16px}.private-view .private-messages{padding:20px 16px}.private-view .private-messages .message{max-width:88%}.private-view #private-send>span:first-child{display:none}.private-view #private-send{min-width:40px;min-height:40px;padding:11px}.private-footnote{font-size:9px}}
+
+/* Lista de contactos bajo demanda, sin una segunda barra lateral permanente. */
+.private-view{grid-template-columns:minmax(0,1fr)}
+.private-view.has-contact .private-contacts{display:none}
+.private-view:not(.has-contact) .private-thread{display:none}
+.private-view #private-back{display:inline-flex}
+.private-contacts{border-right:0}
+.private-contacts>header{padding-left:24px;padding-right:24px}
+#private-contact-list{width:100%;max-width:640px;padding:14px 20px;align-self:center}
+.private-contact{padding:14px 12px}
+.private-contacts>header h2{font-size:15px}
+@media(max-width:700px){#private-contact-list{padding:8px}.private-contacts>header{padding-left:18px;padding-right:18px}}
+
+/* Espaciado compacto de la conversación privada. */
+.private-view .private-messages{gap:10px}
+
+.private-view .private-messages .message-meta{margin-bottom:5px}
+.private-view .private-messages .reactions:has(>.reaction-picker:only-child){position:absolute;left:-30px;bottom:0;margin:0}
+.private-view .private-messages .message:not(.own) .reactions:has(>.reaction-picker:only-child){left:auto;right:-30px}
+
+/* Controles de composición alineados y reacción al costado de la burbuja. */
+.private-view #private-form .composer{display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 12px}
+.private-view #private-form #private-emoji{align-self:center;margin:0;width:36px;height:40px}
+.private-view #private-form #private-content{display:block;box-sizing:border-box;min-height:40px;height:40px;max-height:120px;line-height:24px;padding:8px 0;margin:0;align-self:center}
+.private-view #private-form #private-send{height:40px;min-height:40px;align-self:center;margin:0}
+.private-view .private-messages .message .reactions:has(>.reaction-picker:only-child){position:static;margin:0}
+.private-view .private-messages .message .reactions>.reaction-picker{position:absolute;right:-32px;left:auto;top:32px;bottom:auto}
+.private-view .private-messages .message.own .reactions>.reaction-picker{left:-32px;right:auto}
+.private-view .private-messages .compact-message .reactions>.reaction-picker{top:8px}
+.private-view .private-messages .message{max-width:min(80%,570px,calc(100% - 40px))}
+.private-view .private-messages .message .reaction-options{left:auto;right:0}
+.private-view .private-messages .message.own .reaction-options{left:0;right:auto}

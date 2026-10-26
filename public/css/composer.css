@@ -1,0 +1,72 @@
+/* Un mismo diseño de escritura para General y conversaciones privadas. */
+.conversation .message>.message-actions,
+.conversation .private-messages .compact-message>.message-actions{
+  top:calc(var(--bubble-top,26px) + 1px);
+  right:-33px;
+  left:auto;
+}
+.conversation .message.own>.message-actions{left:-33px;right:auto}
+.conversation .message>.message-actions>summary{width:26px;height:26px}
+.conversation :is(.messages,.private-messages) .message .reactions>.reaction-picker,
+.conversation .private-messages .compact-message .reactions>.reaction-picker{
+  top:calc(var(--bubble-top,26px) + 28px);
+}
+.conversation #message-form,
+.conversation #private-form .composer{
+  display:grid;
+  grid-template-columns:36px minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border:1px solid #dce4f0;
+  border-radius:11px;
+  background:#fff;
+}
+#message-form .composer-toolbar,
+#message-form .composer-tools{display:contents}
+#message-form .composer-destination{display:none}
+.conversation #message-form #message,
+.conversation #private-form #private-content{
+  grid-column:2;
+  grid-row:1;
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  height:40px;
+  min-height:40px;
+  max-height:120px;
+  padding:8px 0;
+  margin:0;
+  font-size:13px;
+  line-height:24px;
+  align-self:center;
+}
+.conversation #message-form #composer-emoji,
+.conversation #private-form #private-emoji{
+  grid-column:1;
+  grid-row:1;
+  width:36px;
+  height:40px;
+  margin:0;
+  align-self:center;
+}
+.conversation #message-form #send,
+.conversation #private-form #private-send{
+  grid-column:3;
+  grid-row:1;
+  height:40px;
+  min-height:40px;
+  padding:10px 13px;
+  margin:0;
+  font-size:11px;
+  align-self:center;
+}
+#message-form .composer-emoji-picker{bottom:calc(100% + 8px);left:0}
+.conversation .composer-area{padding-left:22px;padding-right:22px}
+@media(max-width:1200px){.conversation .composer-area{padding-left:16px;padding-right:16px}}
+@media(max-width:700px){
+  .conversation .composer-area{padding-left:12px;padding-right:12px}
+  .conversation #message-form #message,.conversation #private-form #private-content{font-size:16px}
+  #message-form #send>span:first-child{display:none}
+  #message-form #send,#private-form #private-send{min-width:40px}
+}

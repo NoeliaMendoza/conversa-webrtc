@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#15243B">
+  <title>Conversa Workspace</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#message">Ir a escribir un mensaje</a>
+  <header class="topbar">
+    <div class="topbar-brand"><button id="sidebar-toggle" class="icon-button mobile-menu" type="button" aria-label="Abrir navegación" aria-controls="sidebar" aria-expanded="false"><span data-icon="menu"></span></button><a class="brand" href="/" aria-label="Conversa Workspace"><span class="brand-symbol" data-icon="logo"></span><span>Conversa<span class="brand-subtitle">Workspace</span></span></a></div>
+    <button id="search-open" class="workspace-search" type="button" disabled><span data-icon="search"></span><span>Buscar en la conversación…</span><kbd>Ctrl K</kbd></button>
+    <div class="topbar-actions"><span id="connection" class="connection" role="status">Conectando…</span><button id="notifications-open" class="icon-button notification-button" type="button" aria-label="Ver notificaciones" aria-controls="notifications-popover" aria-expanded="false"><span data-icon="bell"></span><span id="notification-dot" hidden></span></button><span class="topbar-divider"></span><div id="current-avatar" class="avatar current-avatar" aria-label="Sin sesión">?</div></div>
+  </header>
+  <main class="shell" id="workspace">
+    <aside class="sidebar" id="sidebar" aria-label="Navegación y equipo">
+
+      <p class="sidebar-label">NAVEGACIÓN</p>
+      <nav class="main-navigation" aria-label="Principal">
+        <button id="nav-home" class="nav-item" type="button"><span data-icon="home"></span><span>Inicio</span></button>
+        <button id="nav-general" class="nav-item active" type="button" aria-current="page"><span data-icon="hash"></span><span>Conversación General</span><span id="unread-badge" class="unread-badge" hidden></span></button>
+        <button id="private-open" class="nav-item" type="button" disabled><span data-icon="messages"></span><span id="private-label">Mensajes privados</span></button>
+        <button id="nav-pinned" class="nav-item" type="button"><span data-icon="pin"></span><span>Mensajes fijados</span></button>
+      </nav>
+      <div class="sidebar-rule"></div>
+      <div class="people-heading"><h2>TU EQUIPO</h2><span id="user-count">0</span></div>
+      <div class="sidebar-people"><ul id="users" aria-label="Usuarios conectados"></ul><div id="offline-section" hidden><div class="people-heading offline-heading"><h2>DESCONECTADOS</h2></div><ul id="offline-users" aria-label="Usuarios desconectados"></ul></div></div>
+
+      <div class="sidebar-profile"><span id="sidebar-avatar" class="avatar">?</span><div><strong id="profile-name">Tu workspace</strong><small id="profile-status">Ingresa para participar</small></div></div>
+    </aside>
+    <section class="conversation" aria-label="Conversación grupal">
+      <header class="chat-header"><div class="channel-heading"><span class="channel-icon" data-icon="hash"></span><div><h1>General <span class="channel-tag">CANAL DEL EQUIPO</span></h1></div></div><div class="chat-header-actions"><div class="channel-members"><div id="header-avatars" class="avatar-stack"></div><span id="channel-count">0 participantes</span></div><span class="header-divider"></span><button id="details-toggle" class="icon-button" type="button" aria-label="Ocultar detalles del grupo" aria-controls="details-panel" aria-expanded="true"><span data-icon="panel"></span></button></div></header>
+      <div id="pinned-banner" class="pinned-banner" hidden><span data-icon="pin"></span><button id="pinned-jump" type="button"><strong id="pinned-author"></strong><span id="pinned-text"></span></button><button id="pinned-remove" class="icon-button" type="button" aria-label="Quitar mensaje fijado"><span data-icon="x"></span></button></div>
+      <div id="welcome" class="welcome"><span class="welcome-icon" data-icon="messages"></span><h2>Todavía no hay mensajes</h2><p>Escribe el primer mensaje en General.</p></div>
+      <div id="messages" class="messages" role="log" aria-label="Mensajes del chat" aria-relevant="additions"></div>
+      <footer class="composer-area">
+        <div class="unread-row" aria-live="polite"><button id="unread-button" type="button" hidden></button></div>
+        <div id="reply-preview" class="reply-preview" hidden><span data-icon="reply"></span><div><strong id="reply-author"></strong><span id="reply-text"></span></div><button id="reply-cancel" class="icon-button" type="button" aria-label="Cancelar respuesta"><span data-icon="x"></span></button></div>
+        <p id="typing" class="typing-indicator" role="status" aria-live="polite"></p>
+        <p id="feedback" class="feedback" role="status"></p>
+        <form id="message-form" class="composer"><label class="sr-only" for="message">Mensaje al grupo</label><textarea id="message" rows="1" maxlength="2000" placeholder="Escribe un mensaje para el equipo…" disabled required></textarea><div class="composer-toolbar"><div class="composer-tools"><button id="composer-emoji" class="icon-button" type="button" aria-label="Insertar emoji" aria-expanded="false" aria-controls="composer-emoji-picker" disabled><span data-icon="smile"></span></button><span class="composer-destination">Mensaje a <strong># General</strong></span></div><button id="send" class="send-button" type="submit" disabled><span>Enviar</span><span data-icon="send"></span></button></div><div id="composer-emoji-picker" class="composer-emoji-picker" role="group" aria-label="Elegir emoji" hidden></div></form>
+        <p class="composer-hint"><span><kbd>Enter</kbd> para enviar <span class="hint-dot">·</span> <kbd>Shift + Enter</kbd> para una nueva línea</span><span class="composer-live"><span class="live-dot"></span><span id="composer-live-label">Conectando…</span></span></p>
+      </footer>
+    </section>
+    <aside id="details-panel" class="details-panel" aria-label="Detalles del grupo">
+      <header class="details-header"><h2>Detalles del grupo</h2><button id="details-close" class="icon-button" type="button" aria-label="Cerrar detalles del grupo"><span data-icon="x"></span></button></header>
+      <div class="group-overview"><span class="group-symbol" data-icon="hash"></span><h3>Conversación General</h3><p>Los mensajes de este canal son visibles para todos los participantes.</p></div>
+      <section class="detail-section"><div class="detail-section-title"><h3>Participantes</h3><span id="detail-count" class="detail-count">0</span></div><div id="detail-avatars" class="avatar-stack"></div><p id="detail-online" class="detail-caption">Esperando al equipo</p></section>
+      <section class="detail-section" id="detail-pinned-section"><div class="detail-section-title"><h3><span data-icon="pin"></span>Mensaje fijado</h3><span id="detail-pin-count" class="detail-count">0</span></div><p id="detail-pin-empty" class="detail-empty">No hay mensajes fijados.</p><button id="detail-pin-card" class="detail-pin-card" type="button" hidden><strong id="detail-pin-author"></strong><span id="detail-pin-text"></span><small>Ver en la conversación <span data-icon="arrow-right"></span></small></button></section>
+
+
+    </aside>
+  </main>
+  <button id="panel-backdrop" class="panel-backdrop" type="button" aria-label="Cerrar panel lateral" hidden></button>
+  <section id="notifications-popover" class="notifications-popover" aria-labelledby="notifications-title" hidden><header><h2 id="notifications-title">Actividad del workspace</h2><button id="notifications-close" class="icon-button" type="button" aria-label="Cerrar notificaciones"><span data-icon="x"></span></button></header><ul id="notifications-list"></ul><p id="notifications-empty">Todavía no hay notificaciones en esta sesión.</p></section>
+  <div id="private-alert" class="private-alert" role="status" hidden><div><strong id="private-alert-title"></strong><span>Te envió un mensaje privado.</span></div><button id="private-alert-open" type="button">Ver mensaje</button><button id="private-alert-close" class="icon-button" type="button" aria-label="Cerrar aviso">×</button></div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <dialog id="join-dialog" aria-labelledby="join-title">
+    <form id="join-form"><span class="dialog-mark" data-icon="logo"></span><p class="eyebrow">CONVERSA WORKSPACE</p><h2 id="join-title">Entrar al chat</h2><p>Ingresa tu nombre para participar en la conversación.</p><label for="name">Tu nombre</label><input id="name" name="name" autocomplete="nickname" minlength="2" maxlength="30" placeholder="Ej. Noelia" required><p id="join-error" class="feedback" role="alert"></p><button id="join-button" class="primary" type="submit" disabled>Entrar al workspace <span data-icon="arrow-right"></span></button><p class="join-footnote">Tu nombre será visible para los demás participantes.</p></form>
+  </dialog>
+  <dialog id="edit-dialog" aria-labelledby="edit-title">
+    <form id="edit-form"><p class="eyebrow">TU MENSAJE</p><h2 id="edit-title">Editar mensaje</h2><label for="edit-content">Contenido</label><textarea id="edit-content" rows="4" maxlength="2000" required></textarea><p id="edit-error" class="feedback" role="alert"></p><div class="edit-actions"><button id="edit-cancel" type="button">Cancelar</button><button id="edit-save" type="submit" class="primary">Guardar cambios</button></div></form>
+  </dialog>
+  <dialog id="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description">
+    <form id="delete-form">
+      <p class="eyebrow">TU MENSAJE</p>
+      <h2 id="delete-title">¿Eliminar mensaje?</h2>
+      <p id="delete-description">Se eliminará para todos los participantes. Esta acción no se puede deshacer.</p>
+      <blockquote id="delete-preview"></blockquote>
+      <p id="delete-error" class="feedback" role="alert"></p>
+      <div class="delete-actions"><button id="delete-cancel" type="button">Cancelar</button><button id="delete-confirm" type="submit">Eliminar mensaje</button></div>
+    </form>
+  </dialog>
+  <dialog id="search-dialog" aria-labelledby="search-title">
+    <header class="private-header"><div><p class="eyebrow">CONVERSACIÓN GENERAL</p><h2 id="search-title">Buscar mensajes</h2></div><button id="search-close" type="button" aria-label="Cerrar búsqueda">×</button></header>
+    <label for="search-query">Contenido del mensaje</label><input id="search-query" type="search" maxlength="100" placeholder="Escribe al menos 2 caracteres…" autocomplete="off">
+    <p id="search-status" class="feedback" role="status">Busca en los últimos 200 mensajes del grupo.</p>
+    <div id="search-results" aria-label="Resultados de búsqueda"></div>
+  </dialog>
+  <section id="private-dialog" class="private-view" aria-labelledby="private-title" hidden>
+    <aside class="private-contacts" aria-label="Conversaciones privadas"><header><h2 id="private-title">Elige un contacto</h2><button id="private-close" class="icon-button" type="button" aria-label="Volver a General"><span data-icon="x"></span></button></header><p id="private-contacts-empty" hidden>No hay otros usuarios conectados.</p><ul id="private-contact-list"></ul></aside>
+    <div class="private-thread">
+      <header class="private-thread-header"><button id="private-back" class="icon-button" type="button" aria-label="Cambiar contacto" title="Cambiar contacto"><span data-icon="arrow-right"></span></button><span id="private-peer-avatar" class="avatar" hidden></span><div><h2 id="private-peer-name">Elige una conversación</h2><p id="private-status" role="status">Selecciona a una persona de la lista para escribirle.</p></div><span class="private-thread-label">Privado</span></header>
+      <div id="private-messages" class="private-messages" role="log" aria-label="Conversación privada"></div>
+      <form id="private-form"><div id="private-reply-preview" class="reply-preview" hidden><div><strong id="private-reply-author"></strong><span id="private-reply-text"></span></div><button id="private-reply-cancel" class="icon-button" type="button" aria-label="Cancelar respuesta privada">×</button></div><label class="sr-only" for="private-content">Mensaje privado</label><div class="composer"><textarea id="private-content" rows="1" maxlength="2000" placeholder="Escribe un mensaje…" required disabled></textarea><button id="private-send" class="send-button" type="submit" aria-label="Enviar mensaje privado" disabled><span>Enviar</span><span data-icon="send"></span></button></div><p id="private-error" class="feedback" role="alert"></p><p class="private-footnote">Solo tú y esta persona pueden ver esta conversación.</p></form>
+    </div>
+  </section>
+  <dialog id="private-action-dialog" aria-labelledby="private-action-title"><form id="private-action-form"><h2 id="private-action-title"></h2><label id="private-action-label" for="private-action-content">Contenido</label><textarea id="private-action-content" rows="4" maxlength="2000"></textarea><p id="private-action-description"></p><p id="private-action-error" class="feedback" role="alert"></p><div class="edit-actions"><button id="private-action-cancel" type="button">Cancelar</button><button id="private-action-save" class="primary" type="submit">Guardar</button></div></form></dialog>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
