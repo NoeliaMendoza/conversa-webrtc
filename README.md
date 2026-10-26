@@ -222,15 +222,3 @@ Después de comprobar el funcionamiento local, mantener el servidor ejecutándos
 6. Mantener computador, servidor y túnel activos durante la prueba y detener la publicación al terminar. Una URL pública permite acceder a quien la conozca.
 
 El cliente conecta Socket.IO al mismo origen desde el que se carga la página. Las capturas y los resultados de la prueba externa se documentan en el informe del laboratorio; estas instrucciones no sustituyen esa evidencia.
-
-## Crear el ZIP de entrega
-
-Desde PowerShell, en la carpeta del proyecto:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\crear-entrega.ps1 -NombreArchivo APELLIDOS_NOMBRES_LAB_WEBSOCKETS.zip
-```
-
-Sustituir `APELLIDOS_NOMBRES` por los apellidos y nombres completos, en mayúsculas y separados por guiones bajos. El script incluye únicamente `public/`, `server/`, `tests/`, `scripts/`, `package.json`, `package-lock.json`, `.gitignore` y `README.md`. Excluye `node_modules/`, `.data/`, `.env`, registros, archivos ZIP e información local de desarrollo. No elimina las dependencias ni la clave de la instalación local.
-
-El ZIP contiene el proyecto directamente en su raíz: después de extraerlo se puede ejecutar `npm ci` y `npm start`. La entrega en la plataforma debe contener únicamente el PDF del informe y el ZIP, con el formato de nombre indicado por el docente.
