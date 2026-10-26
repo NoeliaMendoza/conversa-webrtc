@@ -1,0 +1,14 @@
+{
+  "name": "conversa-lab-websockets",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chat grupal modular para el laboratorio de WebSockets",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=22" },
+  "dependencies": { "express": "^5.0.0", "socket.io": "^4.8.0" },
+  "devDependencies": { "socket.io-client": "^4.8.0" }
+}
