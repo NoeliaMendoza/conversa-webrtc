@@ -7,6 +7,7 @@ const registerPinHandlers = require('./pinHandler');
 const registerPresenceHandlers = require('./presenceHandler');
 const registerSearchHandlers = require('./searchHandler');
 const registerPrivateTyping = require('./privateTypingHandler');
+const registerCallHandlers = require('./callHandler');
 
 module.exports = function registerConnections(io) {
   io.on('connection', socket => {
@@ -19,5 +20,6 @@ module.exports = function registerConnections(io) {
     registerPresenceHandlers(io, socket);
     registerSearchHandlers(io, socket);
     registerPrivateTyping(io, socket);
+    registerCallHandlers(io, socket);
   });
 };
