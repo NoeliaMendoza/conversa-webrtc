@@ -1,8 +1,8 @@
 {
-  "name": "conversa-lab-websockets",
+  "name": "conversa-webrtc",
   "version": "1.0.0",
   "private": true,
-  "description": "Chat grupal modular para el laboratorio de WebSockets",
+  "description": "Chat modular con llamadas de audio y video mediante WebRTC",
   "scripts": {
     "start": "node server/server.js",
     "dev": "node --watch server/server.js",
