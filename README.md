@@ -2,13 +2,42 @@
 
 ## Descripción
 
-Aplicación web de mensajería grupal en tiempo real para el laboratorio de Aplicaciones Distribuidas. Los usuarios ingresan con un nombre y participan inicialmente en General. El sistema sincroniza mensajes, ediciones, eliminaciones, reacciones y presencia entre varios navegadores sin recargar la página. También ofrece conversaciones privadas con confirmación de recepción y lectura.
+Aplicación de comunicación en tiempo real para la tarea de WebRTC de Aplicaciones Distribuidas, construida sobre el chat del laboratorio de WebSockets. Los usuarios ingresan con un nombre y participan inicialmente en General. El sistema sincroniza mensajes, ediciones, eliminaciones, reacciones y presencia entre varios navegadores sin recargar la página. También ofrece conversaciones privadas con confirmación de recepción y lectura.
+
+## Llamadas de audio y video mediante WebRTC
+
+Seleccionar otro usuario conectado: el botón de cámara inicia una videollamada y el teléfono inicia una llamada de audio sin solicitar cámara. El destinatario puede aceptar o rechazar, y el emisor puede cancelar. Una solicitud pendiente vence a los 30 segundos. Cada usuario puede participar en una sola llamada a la vez.
+
+Al aceptar, ambos navegadores solicitan los permisos necesarios y crean su conexión multimedia. La interfaz muestra el participante, video remoto principal, miniatura local, avatares cuando se desactiva la cámara y duración desde que se establece la conexión. Los controles permiten silenciar micrófono, desactivar cámara y finalizar. El indicador WebRTC corresponde a los medios; el indicador superior corresponde a Socket.IO.
+
+### Arquitectura y señalización
+
+- **Chat y señalización:** Socket.IO sobre WebSocket, mediante el servidor existente.
+- **Audio y video:** RTCPeerConnection entre navegadores. El servidor de la aplicación no retransmite los medios.
+- **Dispositivos:** localMedia.js obtiene MediaStream mediante getUserMedia; localPreview.js permite comprobarlos sin llamar.
+- **Solicitudes:** calls.js coordina la interfaz; callService.js conserva el estado y callHandler.js valida identidad y participantes.
+- **Conexión:** peerCall.js gestiona oferta, respuesta, candidatos ICE y liberación de dispositivos.
+- **Presentación:** callView.js controla avatares, duración y estados; callControls.js gestiona las pistas; calls.css contiene los estilos responsive.
+
+El flujo es: call:start → call:incoming → call:accept → call:accepted. El emisor crea la oferta (webrtc:offer); el receptor establece esa descripción y genera la respuesta (webrtc:answer). Ambos intercambian webrtc:ice-candidate. Los candidatos que llegan antes de la descripción remota se guardan hasta poder aplicarse. El servidor envía estos eventos únicamente al otro participante de una llamada aceptada. Rechazar utiliza call:reject; finalizar utiliza call:end. Los cambios de cámara y micrófono se comunican por el canal de datos WebRTC media-state.
+
+Cualquiera de los dos puede finalizar: se cierra RTCPeerConnection, se detienen las pistas locales y se vacían los elementos de video. Al desconectarse un participante también se termina la llamada. La conexión del chat permanece disponible cuando solo se cuelga la llamada.
+
+### Cámara, micrófono y conectividad
+
+- Usar localhost en el computador o una URL HTTPS desde otro dispositivo. Una dirección HTTP de la red local no proporciona el contexto seguro necesario.
+- Permitir cámara y micrófono en el navegador y en el sistema operativo. La interfaz muestra errores de permisos, dispositivos ausentes o dispositivos ocupados.
+- Usar audífonos al probar dos clientes cercanos para evitar eco. Si una cámara no admite dos capturas simultáneas, probar con dos dispositivos.
+- Si el navegador bloquea la reproducción automática, pulsar **Reproducir audio y video**.
+- Se utiliza STUN público de Google (stun:stun.l.google.com:19302). No hay servidor TURN configurado: algunas redes pueden impedir la conexión directa. El túnel HTTPS expone la aplicación y su señalización; no sustituye un servidor TURN para los medios.
+- Si no se establece la conexión en 45 segundos, se termina el intento y se muestra el error. No se recupera automáticamente una llamada después de reconectar el chat: debe iniciarse otra.
 
 ## Tecnologías utilizadas
 
 - **Node.js:** ejecución del servidor.
 - **Express:** entrega de HTML, CSS, JavaScript y recursos estáticos.
 - **Socket.IO:** comunicación bidireccional por eventos, configurada con `transports: ['websocket']` en cliente y servidor.
+- **WebRTC nativo del navegador:** getUserMedia, MediaStream, RTCPeerConnection y RTCDataChannel.
 - **HTML, CSS propio y JavaScript modular:** interfaz adaptable, sin framework visual.
 - **Módulos nativos de Node.js:** HTTP, UUID, firma HMAC y pruebas con `node:test`.
 
@@ -79,66 +108,75 @@ En ese caso abrir http://localhost:3001. Si aparece `EADDRINUSE`, detener la ins
 ```text
 Conversa/
 ├── server/
-│   ├── server.js
 │   ├── services/
+│   │   ├── callService.js
 │   │   ├── messageService.js
 │   │   ├── pinService.js
 │   │   ├── privateMessageService.js
 │   │   ├── sessionService.js
 │   │   └── userService.js
-│   └── socket/
-│       ├── connectionHandler.js
-│       ├── messageHandler.js
-│       ├── pinHandler.js
-│       ├── presenceHandler.js
-│       ├── privateMessageHandler.js
-│       ├── privateTypingHandler.js
-│       ├── reactionHandler.js
-│       ├── searchHandler.js
-│       ├── typingHandler.js
-│       └── userHandler.js
+│   ├── socket/
+│   │   ├── callHandler.js
+│   │   ├── connectionHandler.js
+│   │   ├── messageHandler.js
+│   │   ├── pinHandler.js
+│   │   ├── presenceHandler.js
+│   │   ├── privateMessageHandler.js
+│   │   ├── privateTypingHandler.js
+│   │   ├── reactionHandler.js
+│   │   ├── searchHandler.js
+│   │   ├── typingHandler.js
+│   │   └── userHandler.js
+│   └── server.js
 ├── public/
-│   ├── index.html
-│   ├── favicon.svg
 │   ├── css/
 │   │   ├── accessibility.css
+│   │   ├── calls.css
 │   │   ├── components.css
 │   │   ├── composer.css
 │   │   ├── layout.css
+│   │   ├── media.css
 │   │   ├── messages.css
 │   │   ├── private.css
 │   │   ├── responsive.css
 │   │   └── style.css
-│   └── js/
-│       ├── app.js
-│       ├── emojiPicker.js
-│       ├── icons.js
-│       ├── messageActions.js
-│       ├── messageDeletion.js
-│       ├── messageEditor.js
-│       ├── messageSearch.js
-│       ├── pinnedMessages.js
-│       ├── presence.js
-│       ├── privateMessageFeatures.js
-│       ├── privateMessages.js
-│       ├── privateTyping.js
-│       ├── reactionEmojis.js
-│       ├── reactions.js
-│       ├── replies.js
-│       ├── socket.js
-│       ├── typing.js
-│       ├── ui.js
-│       ├── unreadMessages.js
-│       ├── unreadState.mjs
-│       └── workspace.js
+│   ├── js/
+│   │   ├── app.js
+│   │   ├── callControls.js
+│   │   ├── calls.js
+│   │   ├── callView.js
+│   │   ├── emojiPicker.js
+│   │   ├── icons.js
+│   │   ├── localMedia.js
+│   │   ├── localPreview.js
+│   │   ├── messageActions.js
+│   │   ├── messageDeletion.js
+│   │   ├── messageEditor.js
+│   │   ├── messageSearch.js
+│   │   ├── peerCall.js
+│   │   ├── pinnedMessages.js
+│   │   ├── presence.js
+│   │   ├── privateMessageFeatures.js
+│   │   ├── privateMessages.js
+│   │   ├── privateTyping.js
+│   │   ├── reactionEmojis.js
+│   │   ├── reactions.js
+│   │   ├── replies.js
+│   │   ├── socket.js
+│   │   ├── typing.js
+│   │   ├── ui.js
+│   │   ├── unreadMessages.js
+│   │   ├── unreadState.mjs
+│   │   └── workspace.js
+│   ├── favicon.svg
+│   └── index.html
 ├── tests/
+│   ├── calls.test.js
 │   ├── chat.test.js
 │   ├── pin.test.js
 │   ├── private-features.test.js
 │   ├── reconnection.test.js
 │   └── unread.test.js
-├── scripts/
-│   └── crear-entrega.ps1
 ├── .gitignore
 ├── package.json
 ├── package-lock.json
@@ -155,7 +193,7 @@ La hora de cada mensaje se registra en el servidor como una marca de tiempo UTC 
 
 ## Retos implementados
 
-Los cinco seleccionados para la parte obligatoria son **1, 3, 4, 6 y 9**. Se implementaron otros siete: **12 retos en total**. La bonificación está sujeta a demostración y evidencia y tiene un máximo de **+1 punto**.
+Se conservan las doce funcionalidades del laboratorio anterior. En esa entrega, los cinco retos seleccionados fueron **1, 3, 4, 6 y 9**; esta tarea añade las llamadas WebRTC sobre el mismo chat.
 
 | N.º | Reto | Alcance y funcionamiento técnico |
 | --- | --- | --- |
@@ -199,7 +237,7 @@ Las acciones privadas adicionales usan `private:edit`, `private:delete` y `priva
 npm test
 ```
 
-En PowerShell: `npm.cmd test`. La suite contiene cinco pruebas de nivel superior con verificaciones de comunicación, permisos, presencia, privados, acuses, citas, reacciones, destacados, reconexión y no leídos. Los servidores de prueba usan **3127, 3128 y 3134**, independientemente del puerto 3000 de la aplicación; esos tres puertos deben estar libres. La prueba de destacados y la de no leídos también verifican estado directamente sin abrir un servidor.
+En PowerShell: `npm.cmd test`. La suite contiene seis pruebas de nivel superior con verificaciones de comunicación, permisos, presencia, privados, acuses, citas, reacciones, destacados, reconexión, no leídos y señalización de llamadas. La prueba de llamadas comprueba participantes, tipo audio/video, ocupado, aceptación, rechazo, aislamiento de terceros y validación de oferta, respuesta y candidatos ICE. npm test no comprueba dispositivos físicos ni conectividad multimedia externa. Los servidores de prueba usan **3127, 3128, 3134 y 3138**, independientemente del puerto 3000 de la aplicación; esos cuatro puertos deben estar libres. La prueba de destacados y la de no leídos también verifican estado directamente sin abrir un servidor.
 
 ## Prueba multiusuario y desconexión
 
@@ -214,13 +252,21 @@ Una pestaña duplicada puede copiar la sesión y representar al mismo usuario. P
 
 ## Acceso desde otro dispositivo mediante túnel
 
-Después de comprobar el funcionamiento local, mantener el servidor ejecutándose y utilizar un túnel. Con VS Code:
+El procedimiento de túnel indicado para esta tarea es **VS Code Port Forwarding (Microsoft Dev Tunnels)**. Después de comprobar el funcionamiento local, mantener el servidor ejecutándose y seguir estos pasos:
 
 1. Abrir la vista **Ports / Puertos** desde la paleta de comandos (`Ports: Focus on Ports View`).
 2. Seleccionar **Forward a Port** e indicar `3000`, o el puerto configurado.
 3. Completar el inicio de sesión que solicite el editor y configurar **Port Visibility > Public** si el cliente externo necesita acceder sin esa cuenta.
 4. Copiar la URL HTTPS generada y abrirla en el teléfono, preferiblemente con datos móviles y Wi-Fi desactivado.
-5. Ingresar con otro nombre y comprobar presencia e intercambio de mensajes en ambos sentidos. En el teléfono se utiliza la URL pública, no localhost.
-6. Mantener computador, servidor y túnel activos durante la prueba y detener la publicación al terminar. Una URL pública permite acceder a quien la conozca.
+5. Abrir la misma URL HTTPS en el computador y el teléfono, ingresar con nombres distintos y comprobar presencia e intercambio de mensajes en ambos sentidos. En el teléfono se utiliza la URL pública, no localhost.
+6. Iniciar una videollamada, aceptar y conceder permisos en ambos dispositivos. Comprobar video remoto y audio en ambos sentidos, controles y duración.
+7. Finalizar desde cualquiera de los dos y enviar otro mensaje para comprobar que el chat sigue conectado.
+8. Mantener computador, servidor y túnel activos durante la prueba y detener la publicación al terminar. Una URL pública permite acceder a quien la conozca.
 
-El cliente conecta Socket.IO al mismo origen desde el que se carga la página. Las capturas y los resultados de la prueba externa se documentan en el informe del laboratorio; estas instrucciones no sustituyen esa evidencia.
+El cliente conecta Socket.IO al mismo origen desde el que se carga la página. Las capturas y los resultados de la prueba externa se documentan en el informe de la tarea; estas instrucciones no sustituyen esa evidencia.
+
+## Comprobaciones y evidencia manual
+
+Se realizaron pruebas automatizadas y verificaciones en dos navegadores con dispositivos multimedia simulados: audio y video bidireccionales, controles, avatar remoto, duración, finalización, error de permisos y chat posterior. Se revisó la presentación en escritorio y móvil simulado. Estas verificaciones no acreditan una prueba con cámara física o teléfono real.
+
+La prueba externa con computador y celular y sus resultados todavía requieren confirmación del estudiante. Para documentarla, conservar evidencia de ambos usuarios conectados, solicitud y aceptación o rechazo, cámara local/remota, llamada establecida y chat después de finalizar, con la URL HTTPS visible cuando corresponda. La red utilizada, los dispositivos y los resultados observados deben describirse en el informe sin inferirlos de las pruebas simuladas.
