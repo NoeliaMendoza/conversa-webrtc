@@ -1,5 +1,12 @@
 // Iconos vectoriales locales. No se inserta HTML ni contenido procedente del usuario.
 const paths = {
+  mic: ['M9 5a3 3 0 0 1 6 0v7a3 3 0 0 1-6 0Z','M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8'],
+  'mic-off': ['m3 3 18 18','M9 9v3a3 3 0 0 0 5 2M9 5a3 3 0 0 1 6 0v5','M5 10v2a7 7 0 0 0 11 6M19 10v2M12 19v3M8 22h8'],
+  'camera-off': ['m3 3 18 18','M3 6v12h12v-3M8 6h7v5','m15 10 6-4v12l-3-2'],
+  phone: ['M6 3h4l1 5-3 2a14 14 0 0 0 6 6l2-3 5 1v4a3 3 0 0 1-3 3A18 18 0 0 1 3 6a3 3 0 0 1 3-3Z'],
+  'phone-end': ['M3 15v-4a16 16 0 0 1 18 0v4l-5 1-1-4a12 12 0 0 0-6 0l-1 4Z'],
+  play: ['m9 5 11 7-11 7Z'],
+  camera: ['M3 6h12v12H3Z', 'm15 10 6-4v12l-6-4Z'],
   logo: ['M5 4h10a5 5 0 0 1 5 5v6a5 5 0 0 1-5 5H9l-5 3V9a5 5 0 0 1 1-5Z', 'M9 9h7M9 13h5'],
   menu: ['M4 6h16M4 12h16M4 18h16'], x: ['m6 6 12 12M6 18 18 6'],
   search: ['M21 21l-4.5-4.5', 'M19 10.5a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0Z'],

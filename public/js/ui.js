@@ -54,6 +54,7 @@ export function renderUsers(users, currentId) {
     dot.className = `live-dot ${user.status || 'online'}`;
     item.append(avatar, name, dot);
     if (user.id !== currentId && user.status !== 'offline') {
+      const actions = document.createElement('div'); actions.className = 'user-contact-actions'; item.append(actions);
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'private-user-button';
@@ -61,7 +62,19 @@ export function renderUsers(users, currentId) {
       button.append(icon('messages'));
       button.title = `Mensaje privado a ${user.name}`;
       button.setAttribute('aria-label', button.title);
-      item.append(button);
+      actions.append(button);
+      const callButton = document.createElement('button');
+      callButton.type = 'button'; callButton.className = 'private-user-button';
+      callButton.dataset.callUser = user.id;
+      callButton.title = `Llamar a ${user.name}`;
+      callButton.setAttribute('aria-label', callButton.title);
+      callButton.append(icon('camera'));
+      actions.append(callButton);
+      const audioButton = document.createElement('button');
+      audioButton.type = 'button'; audioButton.className = 'private-user-button';
+      audioButton.dataset.callUser = user.id; audioButton.dataset.callMode = 'audio';
+      audioButton.title = 'Llamada de audio a ' + user.name; audioButton.setAttribute('aria-label', audioButton.title);
+      audioButton.append(icon('phone')); actions.append(audioButton);
     }
     return item;
   }

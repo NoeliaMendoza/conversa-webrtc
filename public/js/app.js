@@ -12,9 +12,13 @@ import { setupPresence } from './presence.js';
 import { setupMessageSearch } from './messageSearch.js';
 import { setupWorkspace } from './workspace.js';
 import { setupMessageActions } from './messageActions.js';
+import { setupLocalPreview } from './localPreview.js';
+import { setupCalls } from './calls.js';
 
 let currentUser = null;
 setupWorkspace(() => currentUser);
+setupLocalPreview();
+setupCalls(() => currentUser);
 const unread = setupUnreadMessages(el.messages, () => currentUser);
 let joining = false;
 let sending = false;
