@@ -18,7 +18,7 @@ function next(socket, event, matches = () => true) {
 }
 
 test('chat grupal: validación, difusión, historial, presencia y caída del servidor', { timeout: 20000 }, async t => {
-  const server = spawn(process.execPath, ['server/server.js'], { env: { ...process.env, PORT: '3127' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const server = spawn(process.execPath, ['server/server.js'], { env: { ...process.env, CALL_STATE_FILE: ':memory:', PORT: '3127' }, stdio: ['ignore', 'pipe', 'pipe'] });
   const clients = [];
   t.after(() => { clients.forEach(client => client.disconnect()); server.kill(); });
   await once(server.stdout, 'data');

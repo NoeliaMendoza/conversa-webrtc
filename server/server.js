@@ -1,4 +1,9 @@
 const path = require('node:path');
+const fs = require('node:fs');
+const envFile = path.join(__dirname, '../.env');
+if (fs.existsSync(envFile)) {
+  const configured = { ...process.env }; process.loadEnvFile(envFile); Object.assign(process.env, configured);
+}
 const http = require('node:http');
 const express = require('express');
 const { Server } = require('socket.io');

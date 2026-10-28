@@ -10,7 +10,7 @@ test('reconexión: identidad, autoría, sesión firmada y reinicio del servidor'
   t.after(() => { clients.forEach(socket => socket.disconnect()); server?.kill(); });
   async function start() {
     server = spawn(process.execPath, ['server/server.js'], {
-      env: { ...process.env, PORT: '3128', SESSION_SECRET: 'clave-exclusiva-para-la-prueba-de-reconexion' },
+      env: { ...process.env, CALL_STATE_FILE: ':memory:', PORT: '3128', SESSION_SECRET: 'clave-exclusiva-para-la-prueba-de-reconexion' },
       stdio: ['ignore', 'pipe', 'pipe']
     });
     await once(server.stdout, 'data');

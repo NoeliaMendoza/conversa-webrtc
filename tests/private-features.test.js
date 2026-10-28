@@ -5,7 +5,7 @@ const { once } = require('node:events');
 const { io } = require('socket.io-client');
 
 test('privados: autoría, respuestas, reacción única, acuses e aislamiento de terceros', { timeout: 20000 }, async t => {
-  const server = spawn(process.execPath, ['server/server.js'], { env: { ...process.env, PORT: '3134', SESSION_SECRET: 'private-features-test' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const server = spawn(process.execPath, ['server/server.js'], { env: { ...process.env, CALL_STATE_FILE: ':memory:', PORT: '3134', SESSION_SECRET: 'private-features-test' }, stdio: ['ignore', 'pipe', 'pipe'] });
   const clients = [];
   t.after(() => { clients.forEach(socket => socket.disconnect()); server.kill(); });
   await once(server.stdout, 'data');

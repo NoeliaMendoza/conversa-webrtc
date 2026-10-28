@@ -5,7 +5,7 @@ const { once } = require('node:events');
 const { io } = require('socket.io-client');
 
 test('solicitudes de llamada: destino, permisos, ocupado, aceptar, rechazar y desconexión', { timeout: 15000 }, async t => {
-  const server = spawn(process.execPath, ['server/server.js'], { env: { ...process.env, PORT: '3138', SESSION_SECRET: 'call-signaling-test' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const server = spawn(process.execPath, ['server/server.js'], { env: { ...process.env, CALL_STATE_FILE: ':memory:', PORT: '3138', SESSION_SECRET: 'call-signaling-test' }, stdio: ['ignore', 'pipe', 'pipe'] });
   const clients = [];
   t.after(() => { clients.forEach(socket => socket.disconnect()); server.kill(); });
   await once(server.stdout, 'data');
@@ -43,7 +43,7 @@ test('solicitudes de llamada: destino, permisos, ocupado, aceptar, rechazar y de
   assert.equal((await request(a, 'webrtc:offer', { callId: call.id, description: { type: 'offer', sdp: 3 } })).ok, false);
   const offer = once(b, 'webrtc:offer');
   assert.equal((await request(a, 'webrtc:offer', { callId: call.id, description, recipientId: c.user.id })).ok, true);
-  assert.deepEqual((await offer)[0], { callId: call.id, description });
+  assert.deepEqual((await offer)[0], { callId: call.id, revision: 0, description });
   const answer = once(a, 'webrtc:answer');
   assert.equal((await request(b, 'webrtc:answer', { callId: call.id, description: { type: 'answer', sdp: 'v=0\r\n' } })).ok, true);
   assert.equal((await answer)[0].description.type, 'answer');
