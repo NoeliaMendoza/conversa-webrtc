@@ -21,7 +21,7 @@ Al aceptar, ambos navegadores solicitan los permisos necesarios y crean su conex
 
 El flujo es: call:start → call:incoming → call:accept → call:accepted. El emisor crea la oferta (webrtc:offer); el receptor establece esa descripción y genera la respuesta (webrtc:answer). Ambos intercambian webrtc:ice-candidate. Los candidatos que llegan antes de la descripción remota se guardan hasta poder aplicarse. El servidor envía estos eventos únicamente al otro participante de una llamada aceptada. Rechazar utiliza call:reject; finalizar utiliza call:end. Los cambios de cámara y micrófono se comunican por el canal de datos WebRTC media-state.
 
-Cualquiera de los dos puede finalizar: se cierra RTCPeerConnection, se detienen las pistas locales y se vacían los elementos de video. Al desconectarse un participante también se termina la llamada. La conexión del chat permanece disponible cuando solo se cuelga la llamada.
+Cualquiera de los dos puede finalizar: se cierra RTCPeerConnection, se detienen las pistas locales y se vacían los elementos de video. Ante un corte de señalización, una llamada aceptada se conserva durante 30 segundos para recuperar las sesiones firmadas y renegociar los medios automáticamente. Una solicitud todavía pendiente sí termina al desconectarse. La conexión del chat permanece disponible cuando solo se cuelga la llamada.
 
 ### Cámara, micrófono y conectividad
 
@@ -29,8 +29,8 @@ Cualquiera de los dos puede finalizar: se cierra RTCPeerConnection, se detienen 
 - Permitir cámara y micrófono en el navegador y en el sistema operativo. La interfaz muestra errores de permisos, dispositivos ausentes o dispositivos ocupados.
 - Usar audífonos al probar dos clientes cercanos para evitar eco. Si una cámara no admite dos capturas simultáneas, probar con dos dispositivos.
 - Si el navegador bloquea la reproducción automática, pulsar **Reproducir audio y video**.
-- Se utiliza STUN público de Google (stun:stun.l.google.com:19302). No hay servidor TURN configurado: algunas redes pueden impedir la conexión directa. El túnel HTTPS expone la aplicación y su señalización; no sustituye un servidor TURN para los medios.
-- Si no se establece la conexión en 45 segundos, se termina el intento y se muestra el error. No se recupera automáticamente una llamada después de reconectar el chat: debe iniciarse otra.
+- Se utilizan servidores STUN públicos de Google. TURN es configurable desde variables de entorno y requiere un servicio real con credenciales; no se incluye un relay público ni credenciales compartidas en el proyecto. El túnel HTTPS expone la aplicación y su señalización; no sustituye un servidor TURN para los medios.
+- Después de obtener permisos, cada negociación dispone de 45 segundos y se permiten hasta dos intentos automáticos de recuperación. También se reintenta si falla la conexión de medios. No se consume ese plazo mientras el navegador espera permiso de cámara. Si ambos usuarios recuperan sus sesiones durante el margen de 30 segundos, se renegocia la llamada sin volver a solicitar captura cuando las pistas locales siguen disponibles.
 
 ## Tecnologías utilizadas
 
@@ -110,9 +110,11 @@ Conversa/
 ├── server/
 │   ├── services/
 │   │   ├── callService.js
+│   │   ├── callStore.js
 │   │   ├── messageService.js
 │   │   ├── pinService.js
 │   │   ├── privateMessageService.js
+│   │   ├── rtcConfigService.js
 │   │   ├── sessionService.js
 │   │   └── userService.js
 │   ├── socket/
@@ -132,6 +134,7 @@ Conversa/
 │   ├── css/
 │   │   ├── accessibility.css
 │   │   ├── calls.css
+│   │   ├── callWindow.css
 │   │   ├── components.css
 │   │   ├── composer.css
 │   │   ├── layout.css
@@ -145,6 +148,7 @@ Conversa/
 │   │   ├── callControls.js
 │   │   ├── calls.js
 │   │   ├── callView.js
+│   │   ├── callWindow.js
 │   │   ├── emojiPicker.js
 │   │   ├── icons.js
 │   │   ├── localMedia.js
@@ -171,12 +175,14 @@ Conversa/
 │   ├── favicon.svg
 │   └── index.html
 ├── tests/
+│   ├── call-recovery.test.js
 │   ├── calls.test.js
 │   ├── chat.test.js
 │   ├── pin.test.js
 │   ├── private-features.test.js
 │   ├── reconnection.test.js
 │   └── unread.test.js
+├── .env.example
 ├── .gitignore
 ├── package.json
 ├── package-lock.json
@@ -237,7 +243,7 @@ Las acciones privadas adicionales usan `private:edit`, `private:delete` y `priva
 npm test
 ```
 
-En PowerShell: `npm.cmd test`. La suite contiene seis pruebas de nivel superior con verificaciones de comunicación, permisos, presencia, privados, acuses, citas, reacciones, destacados, reconexión, no leídos y señalización de llamadas. La prueba de llamadas comprueba participantes, tipo audio/video, ocupado, aceptación, rechazo, aislamiento de terceros y validación de oferta, respuesta y candidatos ICE. npm test no comprueba dispositivos físicos ni conectividad multimedia externa. Los servidores de prueba usan **3127, 3128, 3134 y 3138**, independientemente del puerto 3000 de la aplicación; esos cuatro puertos deben estar libres. La prueba de destacados y la de no leídos también verifican estado directamente sin abrir un servidor.
+En PowerShell: `npm.cmd test`. La suite contiene ocho pruebas de nivel superior con verificaciones de comunicación, permisos, presencia, privados, acuses, citas, reacciones, destacados, reconexión, no leídos y señalización de llamadas. La prueba de llamadas comprueba participantes, tipo audio/video, ocupado, aceptación, rechazo, aislamiento de terceros y validación de oferta, respuesta y candidatos ICE. También se verifica la configuración TURN y la persistencia y recuperación tras reiniciar el servidor. npm test no comprueba dispositivos físicos ni conectividad multimedia externa. Los servidores de prueba usan **3127, 3128, 3134, 3138 y 3142**, independientemente del puerto 3000 de la aplicación; esos cinco puertos deben estar libres. La prueba de destacados y la de no leídos también verifican estado directamente sin abrir un servidor.
 
 ## Prueba multiusuario y desconexión
 
@@ -270,3 +276,19 @@ El cliente conecta Socket.IO al mismo origen desde el que se carga la página. L
 Se realizaron pruebas automatizadas y verificaciones en dos navegadores con dispositivos multimedia simulados: audio y video bidireccionales, controles, avatar remoto, duración, finalización, error de permisos y chat posterior. Se revisó la presentación en escritorio y móvil simulado. Estas verificaciones no acreditan una prueba con cámara física o teléfono real.
 
 La prueba externa con computador y celular y sus resultados todavía requieren confirmación del estudiante. Para documentarla, conservar evidencia de ambos usuarios conectados, solicitud y aceptación o rechazo, cámara local/remota, llamada establecida y chat después de finalizar, con la URL HTTPS visible cuando corresponda. La red utilizada, los dispositivos y los resultados observados deben describirse en el informe sin inferirlos de las pruebas simuladas.
+
+### Ventana de llamada
+
+En computador, arrastrar el encabezado o enfocarlo con Tab y usar las flechas para mover la ventana (Shift aumenta el desplazamiento). La posición se mantiene dentro de la pantalla. Minimizar permite continuar con el chat sin detener audio ni video; los controles de micrófono, cámara y colgar siguen disponibles. Ampliar utiliza el espacio de la ventana del navegador. Ocultar mi vista solo oculta la miniatura local y no apaga la cámara. En móvil la posición es automática; se conservan minimizar, restaurar y ampliar.
+
+## TURN y recuperación de llamadas
+
+Copiar `.env.example` a `.env` y completar `TURN_URLS`, `TURN_USERNAME` y `TURN_CREDENTIAL` con los datos de un proveedor TURN o servidor propio. Node carga `.env` al iniciar; las variables ya presentes en el entorno tienen prioridad. Reiniciar el servidor tras cambiar la configuración. Nunca subir `.env` a Git.
+
+Como alternativa compatible con coturn TURN REST, configurar `TURN_SHARED_SECRET`: el servidor genera credenciales de una hora por usuario. El secreto compartido nunca se entrega al navegador; la configuración ICE y las credenciales de uso se entregan solo a participantes de una llamada aceptada mediante `webrtc:config`.
+
+`TURN_RELAY_ONLY=true` obliga a usar TURN para comprobar la ruta relay; si no hay TURN configurado, la aplicación informa del error. Dejarlo en false permite conexión directa con relay como alternativa. Una configuración válida no demuestra por sí sola que el relay sea accesible: la prueba externa sigue siendo necesaria.
+
+Los metadatos de llamadas aceptadas se guardan en `.data/calls.json` mediante reemplazo de archivo. No contiene grabaciones, SDP ni credenciales. Las solicitudes pendientes no se persisten. Tras reiniciar el servidor, se abre un margen de 30 segundos para que ambos usuarios recuperen sus sesiones y reanuden la llamada. El archivo de sesión existente debe mantenerse para validar sus identidades. Los registros antiguos (más de siete días) o con plazo de recuperación vencido se descartan. Este almacenamiento está pensado para una instancia del servidor; no coordina varios procesos. En pruebas se usa `CALL_STATE_FILE=:memory:` o un archivo temporal aislado.
+
+Las llamadas continúan siendo entre dos personas y cada usuario puede tener una activa: es el alcance de la tarea y evita que el micrófono se comparta accidentalmente con varias conversaciones.
