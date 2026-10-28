@@ -40,6 +40,7 @@ export function setupCalls(getCurrentUser) {
     byId('call-dismiss').hidden = call.status !== 'ended';
     view.error('');
     panel.classList.toggle('call-panel-active', call.status === 'accepted');
+    view.refresh();
     if (call.status === 'ended') peer.stop();
     if (call.status === 'accepted') {
       try { peer.start(call); }
@@ -56,7 +57,7 @@ export function setupCalls(getCurrentUser) {
   byId('users').addEventListener('click', async event => {
     const button = event.target.closest('[data-call-user]');
     if (!button || !getCurrentUser() || busy) return;
-    if (current && current.status !== 'ended') { panel.hidden = false; return; }
+    if (current && current.status !== 'ended') { panel.hidden = false; view.restore(); return; }
     busy = true; const attempt = generation;
     try {
       const response = await request('call:start', { recipientId: button.dataset.callUser, mode: button.dataset.callMode || 'video' });

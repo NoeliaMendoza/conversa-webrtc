@@ -91,14 +91,19 @@
   </section>
   <dialog id="private-action-dialog" aria-labelledby="private-action-title"><form id="private-action-form"><h2 id="private-action-title"></h2><label id="private-action-label" for="private-action-content">Contenido</label><textarea id="private-action-content" rows="4" maxlength="2000"></textarea><p id="private-action-description"></p><p id="private-action-error" class="feedback" role="alert"></p><div class="edit-actions"><button id="private-action-cancel" type="button">Cancelar</button><button id="private-action-save" class="primary" type="submit">Guardar</button></div></form></dialog>
   <section id="call-panel" class="call-panel" role="region" aria-labelledby="call-title" hidden tabindex="-1">
-    <header class="call-heading"><span id="call-kind-icon" class="call-kind-icon" data-icon="camera"></span><div class="call-heading-copy"><p id="call-type">Videollamada</p><h2 id="call-title">Llamada entrante</h2></div><button id="call-dismiss" class="icon-button" type="button" aria-label="Cerrar aviso" hidden><span data-icon="x"></span></button></header>
-    <div class="call-identity"><span id="call-avatar"></span><div><p id="call-peer"></p><p id="call-status" role="status" aria-live="polite"></p></div></div>
+    <header id="call-window-heading" class="call-heading" tabindex="0" aria-label="Ventana de llamada. En computador, arrastra o usa las flechas para moverla.">
+      <span id="call-avatar"></span><span id="call-kind-icon" hidden></span>
+      <div class="call-heading-copy"><span id="call-type" class="sr-only">Videollamada</span><h2 id="call-peer"></h2><p id="call-title">Llamada entrante</p></div>
+      <div class="call-window-actions"><button id="call-minimize" class="icon-button" type="button" aria-label="Minimizar llamada" title="Minimizar llamada"><span data-icon="window-minimize"></span></button><button id="call-expand" class="icon-button" type="button" aria-label="Ampliar llamada" title="Ampliar llamada"><span data-icon="window-expand"></span></button><button id="call-dismiss" class="icon-button" type="button" aria-label="Cerrar aviso" hidden><span data-icon="x"></span></button></div>
+    </header>
+    <p id="call-status" role="status" aria-live="polite"></p>
     <div class="call-state-row"><span id="call-rtc-state" class="rtc-state" role="status">WebRTC: Desconectado</span><span id="call-duration" aria-label="Duración de la llamada" hidden>00:00</span></div>
     <div id="call-videos" class="call-stage" hidden>
       <figure class="call-remote-frame"><video id="call-remote-video" autoplay playsinline aria-label="Video de la otra persona"></video><div id="call-remote-placeholder" class="call-video-placeholder"><span id="call-remote-avatar"></span><strong id="call-remote-name"></strong><span id="call-remote-note">Esperando video…</span></div><figcaption><span id="call-remote-caption"></span><span id="call-remote-muted" hidden>Micrófono silenciado</span></figcaption></figure>
       <figure id="call-local-frame" class="call-local-frame"><video id="call-local-video" autoplay muted playsinline aria-label="Tu video"></video><div id="call-local-placeholder" class="call-video-placeholder"><span id="call-local-avatar"></span></div><figcaption>Tú<span id="call-local-note"></span></figcaption></figure>
       <button id="call-play" class="call-play" type="button" hidden><span data-icon="play"></span>Reproducir audio y video</button>
     </div>
+    <button id="call-self-toggle" class="call-self-toggle" type="button" aria-label="Ocultar mi vista previa" aria-pressed="false" title="Ocultar mi vista previa"><span data-icon="eye"></span><span>Ocultar mi vista</span></button>
     <p id="call-error" class="call-error" role="alert" hidden></p>
     <div id="call-toolbar" class="call-toolbar">
       <div id="call-media-controls" class="call-media-controls" hidden><button id="call-mic" class="call-control" type="button" aria-pressed="false"><span data-icon="mic"></span><span>Silenciar micrófono</span></button><button id="call-camera" class="call-control" type="button" aria-pressed="false"><span data-icon="camera"></span><span>Apagar cámara</span></button></div>

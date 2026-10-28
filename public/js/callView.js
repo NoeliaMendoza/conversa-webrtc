@@ -1,7 +1,10 @@
+import { setupCallWindow } from './callWindow.js';
 import { avatarFor, icon } from './icons.js';
 export function setupCallView() {
   const el = id => document.getElementById(id);
   const panel = el('call-panel');
+  const callWindow = setupCallWindow();
+  let callId = null;
   let started = null, ticker = null, mode = 'video';
   function tick() {
     const seconds = Math.floor((Date.now() - started) / 1000);
@@ -10,10 +13,15 @@ export function setupCallView() {
   function state(value) {
     panel.dataset.state = value;
     el('call-rtc-state').textContent = 'WebRTC: ' + ({ connected: 'Conectado', connecting: 'Conectando', disconnected: 'Interrumpido', failed: 'Error', ended: 'Desconectado', pending: 'Desconectado' }[value] || 'Conectando');
-    if (value === 'connected' && !started) { started = Date.now(); tick(); ticker = setInterval(tick, 1000); el('call-duration').hidden = false; }
+    if (value === 'connected') { if (!started) started = Date.now(); tick(); if (!ticker) ticker = setInterval(tick, 1000); el('call-duration').hidden = false; }
     if (value === 'ended' || value === 'failed') { clearInterval(ticker); ticker = null; }
   }
   function show(call, me) {
+    if (callId !== call.id) { clearInterval(ticker); ticker = null; started = null; el('call-duration').hidden = true; callWindow.reset(); callId = call.id; }
+    panel.dataset.lifecycle = call.status;
+    el('call-minimize').hidden = el('call-expand').hidden = call.status !== 'accepted';
+    el('call-self-toggle').hidden = call.status !== 'accepted' || call.mode === 'audio';
+    if (call.status === 'ended') callWindow.restore();
     const other = call.caller.id === me?.id ? call.recipient : call.caller;
     mode = call.mode || 'video';
     panel.dataset.mode = mode;
@@ -38,5 +46,5 @@ export function setupCallView() {
     el('call-remote-muted').hidden = flags.mic;
   }
   function error(message) { el('call-error').textContent = message; el('call-error').hidden = !message; if (message) panel.dataset.state = 'failed'; }
-  return { show, state, remoteMedia, error };
+  return { show, state, remoteMedia, error, restore: callWindow.restore, refresh: callWindow.refresh };
 }

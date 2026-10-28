@@ -1,5 +1,9 @@
 // Iconos vectoriales locales. No se inserta HTML ni contenido procedente del usuario.
 const paths = {
+  'window-minimize': ['M5 17h14'],
+  'window-expand': ['M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5'],
+  'window-restore': ['M8 8h13v13H8Z','M16 8V3H3v13h5'],
+  eye: ['M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z','M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z'],
   mic: ['M9 5a3 3 0 0 1 6 0v7a3 3 0 0 1-6 0Z','M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8'],
   'mic-off': ['m3 3 18 18','M9 9v3a3 3 0 0 0 5 2M9 5a3 3 0 0 1 6 0v5','M5 10v2a7 7 0 0 0 11 6M19 10v2M12 19v3M8 22h8'],
   'camera-off': ['m3 3 18 18','M3 6v12h12v-3M8 6h7v5','m15 10 6-4v12l-3-2'],
