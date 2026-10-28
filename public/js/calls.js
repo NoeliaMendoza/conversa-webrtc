@@ -1,4 +1,4 @@
-import { on, request } from './socket.js';
+import { on, request, isConnected } from './socket.js';
 
 import { setupCallView } from './callView.js';
 import { setupPeerCall } from './peerCall.js';
@@ -10,6 +10,7 @@ export function setupCalls(getCurrentUser) {
   let current = null;
   let busy = false;
   let generation = 0;
+  let pendingEnd = null;
   const peer = setupPeerCall(getCurrentUser,
     text => { byId('call-status').textContent = text; },
     async message => {
@@ -42,13 +43,17 @@ export function setupCalls(getCurrentUser) {
     panel.classList.toggle('call-panel-active', call.status === 'accepted');
     view.refresh();
     if (call.status === 'ended') peer.stop();
-    if (call.status === 'accepted') {
+    if (call.status === 'accepted' && !call.recoveryUntil) {
       try { peer.start(call); }
       catch (error) { peer.stop(); view.error(error.message); request('call:end', { callId: call.id }).catch(() => {}); }
     }
   }
   async function perform(event) {
     if (!current || busy) return;
+    if (event === 'call:end' && !isConnected()) {
+      pendingEnd = current.id; peer.stop(); render({ ...current, status: 'ended' });
+      view.error('Llamada cerrada en este dispositivo. Se notificará al recuperar la conexión.'); return;
+    }
     busy = true;
     try { await request(event, { callId: current.id }); }
     catch (error) { view.error(error.message); }
@@ -71,8 +76,26 @@ export function setupCalls(getCurrentUser) {
   byId('call-end').addEventListener('click', () => perform('call:end'));
   byId('call-dismiss').addEventListener('click', () => { panel.hidden = true; current = null; if (returnFocus?.isConnected) returnFocus.focus(); });
   ['call:incoming', 'call:accepted', 'call:rejected', 'call:ended'].forEach(event => on(event, render));
+  on('call:recovering', call => {
+    if (current?.id !== call.id || current.status !== 'accepted') return;
+    current = call; byId('call-status').textContent = 'Esperando que la otra persona recupere la conexión…';
+  });
+  document.addEventListener('workspace:session', async event => {
+    if (!event.detail.enabled || !getCurrentUser()) return;
+    const attempt = generation;
+    try {
+      if (pendingEnd) { try { await request('call:end', { callId: pendingEnd }); } catch {} pendingEnd = null; }
+      const response = await request('call:sync', {});
+      if (attempt !== generation) return;
+      if (!response.call) { if (current && current.status !== 'ended') render({ ...current, status: 'ended', reason: 'disconnected' }); return; }
+      if (current?.id === response.call.id && current.revision === response.call.revision && peer.isActive(current.id) && !response.call.recoveryUntil) return;
+      render(response.call);
+      if (response.call.recoveryUntil) byId('call-status').textContent = 'Esperando que ambos participantes recuperen la conexión…';
+    } catch (error) { if (attempt === generation && current?.status === 'accepted') view.error(error.message); }
+  });
   on('disconnect', () => {
     generation++; busy = false;
-    if (current && current.status !== 'ended') render({ ...current, status: 'ended', reason: 'disconnected' });
+    if (current?.status === 'accepted') byId('call-status').textContent = 'El chat se está reconectando. La llamada intentará recuperarse automáticamente.';
+    else if (current && current.status !== 'ended') render({ ...current, status: 'ended', reason: 'disconnected' });
   });
 }

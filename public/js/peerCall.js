@@ -1,10 +1,11 @@
 import { setupCallControls } from './callControls.js';
-import { on, request } from './socket.js';
+import { on, request, isConnected } from './socket.js';
 import { getLocalMedia, stopMediaStream, mediaErrorMessage } from './localMedia.js';
 
 // Socket.IO transporta la señalización; RTCPeerConnection transporta los medios.
 export function setupPeerCall(getCurrentUser, report, fail, view) {
   let active = null;
+  let retryCallId = null, retries = 0;
   const controls = setupCallControls(flags => {
     if (active?.channel?.readyState === 'open') active.channel.send(JSON.stringify(flags));
   });
@@ -12,11 +13,11 @@ export function setupPeerCall(getCurrentUser, report, fail, view) {
   const local = document.getElementById('call-local-video');
   const remote = document.getElementById('call-remote-video');
   const videos = document.getElementById('call-videos');
-  function stop() {
+  function stop(preserveStream = false) {
     const session = active; active = null;
     if (session) {
       clearTimeout(session.timer);
-      session.pc.close(); stopMediaStream(session.stream);
+      clearTimeout(session.recoveryTimer); session.pc.close(); if (!preserveStream) stopMediaStream(session.stream);
     }
     for (const video of [local, remote]) { video.pause(); video.srcObject = null; }
     videos.hidden = true; controls.setStream(null);
@@ -29,14 +30,30 @@ export function setupPeerCall(getCurrentUser, report, fail, view) {
   }
   async function signal(session, event, value) {
     if (active !== session) return;
-    await request(event, { callId: session.id, ...value });
+    if (!isConnected()) return; // La sincronización renegocia al volver la sesión.
+    await request(event, { callId: session.id, revision: session.revision, ...value });
+  }
+  async function recover(session, error) {
+    if (active !== session || session.restarting) return;
+    if (!isConnected()) { report('Esperando recuperar el chat para restablecer la llamada…'); return; }
+    if (retries >= 2) { problem(session, error); return; }
+    session.restarting = true; retries++;
+    report('Restableciendo la conexión de la llamada…'); view.state('connecting');
+    try {
+      const response = await request('call:restart', { callId: session.id, revision: session.revision });
+      if (active !== session) return;
+      if (response.call.revision !== session.revision) start(response.call);
+      else { session.restarting = false; session.recoveryTimer = setTimeout(() => recover(session, error), 5000); }
+    } catch (failure) { if (active === session) { session.restarting = false; session.recoveryTimer = setTimeout(() => recover(session, failure), 5000); } }
   }
   function start(call) {
-    if (active?.id === call.id) return;
-    stop();
+    if (active?.id === call.id && active.revision === (call.revision || 0)) return;
+    const reuse = active?.id === call.id ? active.stream : null;
+    stop(!!reuse);
+    if (retryCallId !== call.id) { retryCallId = call.id; retries = 0; }
     document.dispatchEvent(new CustomEvent('media:stop-preview'));
-    const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-    const session = { id: call.id, pc, stream: null, remoteFlags: { camera: call.mode !== 'audio', mic: true }, candidates: [], queue: Promise.resolve() };
+    const pc = new RTCPeerConnection();
+    const session = { id: call.id, revision: call.revision || 0, pc, stream: reuse, remoteFlags: { camera: call.mode !== 'audio', mic: true }, candidates: [], queue: Promise.resolve() };
     active = session; videos.hidden = false;
     state.textContent = 'WebRTC: Conectando'; view.state('connecting');
     function attachChannel(channel) {
@@ -50,7 +67,7 @@ export function setupPeerCall(getCurrentUser, report, fail, view) {
     pc.ondatachannel = event => attachChannel(event.channel);
     if (call.caller.id === getCurrentUser()?.id) attachChannel(pc.createDataChannel('media-state'));
     report(call.mode === 'audio' ? 'Activando micrófono…' : 'Activando cámara y micrófono…');
-    session.timer = setTimeout(() => problem(session, new Error('No se pudo conectar en 45 segundos. Comprueba permisos y red; algunas redes requieren un servidor TURN.')), 45000);
+
     pc.onicecandidate = event => {
       if (event.candidate) signal(session, 'webrtc:ice-candidate', { candidate: event.candidate.toJSON() }).catch(error => problem(session, error));
     };
@@ -65,12 +82,16 @@ export function setupPeerCall(getCurrentUser, report, fail, view) {
       if (active !== session) return;
       state.textContent = 'WebRTC: ' + ({ connected: 'Conectado', connecting: 'Conectando', disconnected: 'Interrumpido', failed: 'Error', closed: 'Desconectado' }[pc.connectionState] || 'Conectando');
       view.state(pc.connectionState);
-      if (pc.connectionState === 'connected') { clearTimeout(session.timer); report(call.mode === 'audio' ? 'Llamada de audio conectada.' : 'Videollamada conectada.'); }
-      if (pc.connectionState === 'disconnected') report('La conexión de video se interrumpió. Intentando recuperarla…');
-      if (pc.connectionState === 'failed') problem(session, new Error('No se pudo establecer la conexión de video. Esta red puede requerir un servidor TURN.'));
+      if (pc.connectionState === 'connected') { clearTimeout(session.timer); clearTimeout(session.recoveryTimer); report(call.mode === 'audio' ? 'Llamada de audio conectada.' : 'Videollamada conectada.'); }
+      if (pc.connectionState === 'disconnected') { report('La conexión de medios se interrumpió. Intentando recuperarla…'); clearTimeout(session.recoveryTimer); session.recoveryTimer = setTimeout(() => recover(session, new Error('No se pudo recuperar la conexión de medios.')), 5000); }
+      if (pc.connectionState === 'failed') recover(session, new Error('No se pudo restablecer la conexión. Comprueba el servicio TURN y la red.'));
     };
     session.ready = (async () => {
-      const stream = await getLocalMedia({ video: call.mode !== 'audio' });
+      const response = await request('webrtc:config', { callId: call.id });
+      if (active !== session) return;
+      const { turnConfigured, ...configuration } = response.config;
+      pc.setConfiguration(configuration);
+      const stream = reuse || await getLocalMedia({ video: call.mode !== 'audio' });
       if (active !== session) { stopMediaStream(stream); return; }
       session.stream = stream; local.srcObject = stream; controls.setStream(stream);
       stream.getTracks().forEach(track => {
@@ -79,6 +100,7 @@ export function setupPeerCall(getCurrentUser, report, fail, view) {
       });
       await local.play();
       if (active !== session) return;
+      session.timer = setTimeout(() => recover(session, new Error('No se pudo establecer la llamada tras varios intentos. Comprueba la red y la configuración TURN.')), 45000);
       report('Conectando audio y video…');
       if (call.caller.id === getCurrentUser()?.id) {
         await pc.setLocalDescription(await pc.createOffer());
@@ -89,7 +111,7 @@ export function setupPeerCall(getCurrentUser, report, fail, view) {
   }
   for (const event of ['webrtc:offer', 'webrtc:answer', 'webrtc:ice-candidate']) on(event, payload => {
     const session = active;
-    if (!session || payload.callId !== session.id) return;
+    if (!session || payload.callId !== session.id || (payload.revision ?? 0) !== session.revision) return;
     // ICE puede llegar antes de setRemoteDescription; se guarda hasta tener SDP.
     session.queue = session.queue.then(async () => {
       await session.ready;
@@ -111,5 +133,5 @@ export function setupPeerCall(getCurrentUser, report, fail, view) {
     remote.play().then(() => { document.getElementById('call-play').hidden = true; report('Audio y video en reproducción.'); }).catch(error => report(error.message));
   });
   window.addEventListener('pagehide', stop);
-  return { start, stop };
+  return { start, stop, isActive: id => active?.id === id };
 }
